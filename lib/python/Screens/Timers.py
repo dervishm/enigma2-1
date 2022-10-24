@@ -1369,6 +1369,7 @@ class PowerTimerEdit(Setup):
 class RecordTimerEdit(Setup):
 	def __init__(self, session, timer):
 		self.timer = timer
+		self.isNew = True
 		self.createConfig()
 		Setup.__init__(self, session, "RecordTimer")
 
@@ -1478,6 +1479,12 @@ class RecordTimerEdit(Setup):
 		current = self["config"].getCurrent()[1]
 		if current == self.timerLocation and self.timerType.value != "zap":
 			self.getSpace()
+		if current == self.timerType and self.timerType.value == "zap" and self.isNew:
+			self.isNew = False
+			self.timerMarginBefore.value = 0
+			self.timerMarginAfter.value = 0
+			self.timerHasEndTime.value = False
+			Setup.createSetup(self)
 
 	def selectionChanged(self):
 		Setup.selectionChanged(self)
@@ -1675,7 +1682,12 @@ class InstantRecordTimerEdit(RecordTimerEdit):
 	def keySave(self, result=None):
 		if self.timer.justplay:
 			self.timer.begin += config.recording.margin_before.value * 60
+			self.timer.eventBegin = self.timer.begin
 			self.timer.end = self.timer.begin + 1
+			self.timer.eventEnd = self.timer.end
+			self.timer.hasEndTime = False
+			self.timer.marginBefore = 0
+			self.timer.marginAfter = 0
 		self.timer.resetRepeated()
 		self.session.nav.RecordTimer.saveTimers()
 
